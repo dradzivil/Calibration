@@ -19,7 +19,7 @@ namespace Calibration
             Console.WriteLine("Нажмите Enter для начала или любую другую клавишу для выхода");
             if (Console.ReadKey().Key == ConsoleKey.Enter)
             {
-                calib.StartColibration(10);
+                calib.StartColibration();
                 Console.WriteLine("Желаете повторить калибровку?");
                 Start(calib);
             }

@@ -9,9 +9,9 @@ namespace Calibration
         /// Массив приборов для примера
         /// </summary>
         static Device[] dev = new [] { 
-            new Device ("A", "1a2sd09"), 
-            new Device("B", "vi3f143"), 
-            new Device("C", "ks8741c") 
+            new Device ("A", 193741123), 
+            new Device("B", 134421234), 
+            new Device("C", 1345134515) 
         };
         /// <summary>
         /// Словарь с названием прибора и количеством колибровок
@@ -25,8 +25,22 @@ namespace Calibration
 
         Random rand = new Random();
         // строки для вывода
-        string str1 = "Для M = {0} и Е = {1} относительная погрешность = {2}%";
-        string str2 = "Для Е = {0} и M = {1} поправочное значение К = {2}";
+        string str1 = "Для M = {0:0.000} и Е = {1:0.000} относительная погрешность = {2:0.000}%";
+        string str2 = "Для Е = {0:0.000} и M = {1:0.000} поправочное значение К = {2:0.000}";
+        private int NumberOfPairs()
+        {
+            Console.WriteLine("Введите количество пар значений М Е: ");
+            try
+            {
+                int n = Convert.ToInt32(Console.ReadLine().Trim());
+                return n;
+            }
+            catch
+            {
+                Console.WriteLine("Введите корректное число!");
+                return NumberOfPairs();
+            }
+        }
 
         /// <summary>
         /// Генерация массива размера n из кортежей - пар значений M и E
@@ -108,8 +122,10 @@ namespace Calibration
         /// Калибровка, пошаговый вызов нужных методов
         /// </summary>
         /// <param name="n"></param>
-        public void StartColibration(int n)
+        public void StartColibration()
         {
+            // вводим количество пар для генерации
+            int n = NumberOfPairs();
             // генерируем массив из кортежей - пар значений M и E
             (double M, double E)[] M_E = ArrayGeneration(n);
             // рассчитываем погрешность для каждой пары
@@ -127,8 +143,8 @@ namespace Calibration
             {
                 Console.WriteLine(
                 String.Format(
-                    "M = {0} (с учетом поправочного К = {1}) " +
-                    "и Е = {2} с относительной погрешностью {3}%", M_E[i].M + K[i], K[i], M_E[i].E, Error[i]));
+                    "M = {0:0.000} (с учетом поправочного К = {1:0.000}) " +
+                    "и Е = {2:0.000} с относительной погрешностью {3:0.000}%", M_E[i].M + K[i], K[i], M_E[i].E, Error[i]));
             }
             Console.WriteLine("Где M - случайно измеренное значение, Е - эталонное значение\n");
             // увеличиваем количество колибровок прибора

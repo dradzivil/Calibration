@@ -11,10 +11,10 @@ namespace Calibration
         /// <summary>
         /// Серийный номер
         /// </summary>
-        private string _serialNumber;
+        private int _serialNumber;
         public string Name { get { return _name; } }
-        public string SerialNumber { get { return _serialNumber; } }
-        public Device(string Name, string SerialNumber) 
+        public int SerialNumber { get { return _serialNumber; } }
+        public Device(string Name, int SerialNumber) 
         {
             _name = Name;
             _serialNumber = SerialNumber;
