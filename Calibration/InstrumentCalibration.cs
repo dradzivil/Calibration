@@ -3,95 +3,76 @@ using System.Collections.Generic;
 
 namespace Calibration
 {
+    /// <summary>
+    /// Класс для подсчетов
+    /// </summary>
     internal class InstrumentCalibration
     {
-        /// <summary>
-        /// Массив приборов для примера
-        /// </summary>
-        static Device[] dev = new [] { 
-            new Device ("A", "1a2sd09"), 
-            new Device("B", "vi3f143"), 
-            new Device("C", "ks8741c") 
-        };
-        /// <summary>
-        /// Словарь с названием прибора и количеством колибровок
-        /// </summary>
-        public Dictionary<string, int> dict = new Dictionary<string, int>()
-        {
-            [dev[0].Name] = 0,
-            [dev[1].Name] = 0,
-            [dev[2].Name] = 0,
-        };
-
         Random rand = new Random();
         // строки для вывода
-        string str1 = "Для M = {0} и Е = {1} относительная погрешность = {2}%";
-        string str2 = "Для Е = {0} и M = {1} поправочное значение К = {2}";
+        string str1 = "Для M = {0:0.000} и Е = {1:0.000} относительная погрешность = {2:0.000}%";
+        string str2 = "Для Е = {0:0.000} и M = {1:0.000} поправочное значение К = {2:0.000}";
+        
+        /// <summary>
+        /// Перебор массива, подсчет по поступаемой в качестве аргумента функции
+        /// </summary>
+        /// <param name="arrayME"></param>
+        /// <param name="myMethodCount"></param>
+        /// <returns></returns>
+        private double[] Array((double M, double E)[] arrayME, Func<(double M, double E), double> myMethodCount)
+        {
+            double[] array = new double[arrayME.Length];
+            for (int i = 0; i < arrayME.Length; i++)
+            {
+                array[i] = myMethodCount(arrayME[i]);
+            }
+            return array;
+        }
 
         /// <summary>
-        /// Генерация массива размера n из кортежей - пар значений M и E
+        /// Функция рассчета относительной погрешности
         /// </summary>
-        /// <param name="n"></param>
+        /// <param name="ME"></param>
         /// <returns></returns>
-        private (double M, double E)[] ArrayGeneration(int n)
-        {
-            (double M, double E)[] array_M_E = new (double M, double E)[n];
-            for (int i = 0; i < n; i++)
-            {
-                array_M_E[i] = (((double)rand.Next(1, 10000) / 1000), ((double)rand.Next(1, 10000) / 1000));
-            }
-            return array_M_E;
-        }
+        private double CountError((double M, double E) ME) => Math.Abs(ME.M - ME.E) / ME.E * 100;
+
+
         /// <summary>
-        /// Рассчет относительной погрешности для массива пар М Е
+        /// Выбор прибора для калибрации из предложенных
         /// </summary>
-        /// <param name="arrayME"></param>
+        /// <param name="calibDev"></param>
         /// <returns></returns>
-        private double[] ArrayME((double M, double E)[] arrayME)
+        private CalibrationInformation TypeOfDevice(CalibrationInformation[] calibDev)
         {
-            double[] arrayError = new double[arrayME.Length];
-            for (int i = 0; i < arrayME.Length; i++)
-            {
-                arrayError[i] = Math.Abs(arrayME[i].M - arrayME[i].E) / arrayME[i].E * 100;
+            Console.WriteLine("Выберите тип прибора из предложенных:");
+            HashSet<string> chooseDev = new HashSet<string>(); ;
+            while (chooseDev.Count <3)
+            { 
+                chooseDev.Add(calibDev[rand.Next(calibDev.Length)].FullName);
             }
-            return arrayError;
-        }
-        /// <summary>
-        /// Рассчет поправочного коэффицента К для пар значений М Е
-        /// </summary>
-        /// <param name="arrayME"></param>
-        /// <returns></returns>
-        private double[] CalibrationDevice((double M, double E)[] arrayME)
-        {
-            double[] arrayK = new double[arrayME.Length];
-            for (int i = 0; i < arrayME.Length; i++)
+            foreach (string device in chooseDev)
             {
-                arrayK[i] = arrayME[i].E - arrayME[i].M;
+                Console.Write(device + ' ');
             }
-            return arrayK;
-        }
-        /// <summary>
-        /// Выбор типа прибора и вывод краткой информации
-        /// </summary>
-        /// <param name="array"></param>
-        /// <returns></returns>
-        private string TypeOfDevice(Device[] array)
-        {
-            Console.WriteLine("Выберите тип прибора:");
-            string name = Console.ReadLine();
-            for (int i=0; i< dev.Length; i++)
+
+            string name = Console.ReadLine().Trim();
+            if (chooseDev.Contains(name))
             {
-                if (dev[i].Name == name)
+                foreach (CalibrationInformation dev in calibDev)
                 {
-                    Console.WriteLine(dev[i].Information());
-                    return dev[i].Name;
+                    if (dev.FullName == name)
+                    {
+                        Console.WriteLine("\n" + dev.Device.Information());
+                        return dev;
+                    }
                 }
             }
-            Console.WriteLine("Такого прибора нет!");
-            return TypeOfDevice(array);
+            Console.WriteLine("Выберите прибор из списка!");
+            return TypeOfDevice(calibDev);
         }
+
         /// <summary>
-        /// Печать на экран в консоль
+        /// Вывод в консоль пар значений и рассчитанного массива значений
         /// </summary>
         /// <param name="arrayME"></param>
         /// <param name="array"></param>
@@ -104,36 +85,51 @@ namespace Calibration
             }
             Console.WriteLine("Где M - случайно измеренное значение, Е - эталонное значение\n");
         }
+
         /// <summary>
-        /// Калибровка, пошаговый вызов нужных методов
+        /// Подсчет количества калибровок данного прибора и всех приборов данного типа
         /// </summary>
-        /// <param name="n"></param>
-        public void StartColibration(int n)
+        /// <param name="choosenDevice"></param>
+        /// <param name="dictCount"></param>
+        private void CountCalibration(CalibrationInformation choosenDevice, Dictionary<string, int> dictCount)
         {
-            // генерируем массив из кортежей - пар значений M и E
-            (double M, double E)[] M_E = ArrayGeneration(n);
-            // рассчитываем погрешность для каждой пары
-            double[] Error = ArrayME(M_E);
-            // выводим получившиеся значения
-            Print(M_E, Error, str1);
-            // узнаем тип прибора и выводим краткую информацию
-            string deviceName = TypeOfDevice(dev);
-            // рассчитываем поправочный К
-            double[] K = CalibrationDevice(M_E);
-            // выводим получившиеся значения
-            Print(M_E, K, str2);
-            //конец колибровки
-            for (int i = 0; i< n ; i++)
+            choosenDevice.NumberColibration++;
+            dictCount[choosenDevice.Device.Name]++;
+            Console.WriteLine("Всего у прибора " + choosenDevice.FullName + " было произведено калибровок: "
+                + choosenDevice.NumberColibration + ".\nОбщее количество колибровок приборов типа " + choosenDevice.Device.Name 
+                + " : " + dictCount[choosenDevice.Device.Name]);
+        }
+
+        /// <summary>
+        /// Основная логика подсчета, вызов функций. Конечный итог - выводы рассчетов по выбранному прибору
+        /// </summary>
+        /// <param name="calibDev"></param>
+        /// <param name="arrayME"></param>
+        /// <param name="dictCount"></param>
+        public void StartColibration(CalibrationInformation[] calibDev, (double M, double E)[] arrayME, Dictionary<string, int> dictCount)
+        {
+            // считаем погрешность
+            double[] Error = Array(arrayME, CountError);
+            // выводим
+            Print(arrayME, Error, str1);
+            // выбираем прибор
+            CalibrationInformation choosenDevice = TypeOfDevice(calibDev);
+            // рассчитываем поправочный коэффицент
+            choosenDevice.ArrayK = Array(arrayME, choosenDevice.CountK);
+            // выводим
+            Print(arrayME, choosenDevice.ArrayK, str2);
+            // итог по подсчетам
+            for (int i = 0; i< arrayME.Length; i++)
             {
                 Console.WriteLine(
                 String.Format(
-                    "M = {0} (с учетом поправочного К = {1}) " +
-                    "и Е = {2} с относительной погрешностью {3}%", M_E[i].M + K[i], K[i], M_E[i].E, Error[i]));
+                    "M = {0:0.000} (с учетом поправочного К = {1:0.000}) " +
+                    "и Е = {2:0.000} с относительной погрешностью {3:0.000}%", 
+                    arrayME[i].M + choosenDevice.ArrayK[i], choosenDevice.ArrayK[i], arrayME[i].E, Error[i]));
             }
             Console.WriteLine("Где M - случайно измеренное значение, Е - эталонное значение\n");
-            // увеличиваем количество колибровок прибора
-            dict[deviceName]++;
-            Console.WriteLine("Всего у прибора " + deviceName + " было произведено калибровок: " + dict[deviceName]);
+            // вывод количества калибровок
+            CountCalibration(choosenDevice, dictCount);
         }
     }
 }
