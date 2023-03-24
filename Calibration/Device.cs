@@ -26,5 +26,8 @@ namespace Calibration
         public string Information() 
             => String.Format("Информация о приборе {0} от {1:yyyy.MM.dd hh.mm.ss} с порядковым номером {2}", 
                 Name, DateTime.Now, SerialNumber);
+        public string Information(string Name, int SerialNumber)
+            => String.Format("Информация о приборе {0} от {1:yyyy.MM.dd hh.mm.ss} с порядковым номером {2}",
+                Name, DateTime.Now, SerialNumber);
     }
 }
