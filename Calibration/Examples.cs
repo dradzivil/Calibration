@@ -1,14 +1,22 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Calibration
 {
+    /// <summary>
+    /// Генерация примеров
+    /// </summary>
     internal class Examples
     {
         Random rand = new Random();
 
+        /// <summary>
+        /// Ввод пользователем пар значений, вызов генерации массива полученного количества пар значений
+        /// </summary>
+        /// <returns></returns>
         internal (double M, double E)[] GeneratePairs()
         {
-            Console.WriteLine("Введите количество пар значений М Е: ");
+            Console.WriteLine("\nВведите количество пар значений М Е: ");
             try
             {
                 int n = Convert.ToInt32(Console.ReadLine().Trim());
@@ -20,6 +28,7 @@ namespace Calibration
                 return GeneratePairs();
             }
         }
+
         /// <summary>
         /// Генерация массива размера n из кортежей - пар значений M и E
         /// </summary>

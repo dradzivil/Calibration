@@ -9,26 +9,30 @@ namespace Calibration
         {
             Console.WriteLine("Нажмите Enter для начала калибровки или любую другую клавишу для выхода");
             TestReadKey();
+            
             GenerateDevices generateDevices = new GenerateDevices();
-            HashSet<Device> dev = generateDevices.GenerateDev(10);
-            CalibrationInformation[] calibDev = generateDevices.GetDevInfoCalib(dev);
-            Run(dev, calibDev);
-            reStart(dev, calibDev);
-
+            CalibrationInformation[] calibDev = generateDevices.GetDevInfoCalib(generateDevices.GenerateDev(10));
+            Dictionary<string, int> dictCount = generateDevices.CountCalibTypeDev();
+            
+            Run(calibDev, dictCount);
+            reStart(calibDev, dictCount);
         }
         /// <summary>
-        /// Начало программы, вызоз калибровки или выход из приложения
+        /// Перезапуск калибровки или выход из программы
         /// </summary>
-        /// <param name="calib"></param>
-        static void reStart(HashSet<Device> dev, CalibrationInformation[] calibDev)
+        /// <param name="calibDev"></param>
+        /// <param name="dictCount"></param>
+        static void reStart(CalibrationInformation[] calibDev, Dictionary<string, int> dictCount)
         {
-            Console.WriteLine("Желаете повторить калибровку? Нажмите Enter или любую другую клавишу для выхода");
+            Console.WriteLine("\nЖелаете повторить калибровку? Нажмите Enter или любую другую клавишу для выхода");
             TestReadKey();
-            Run(dev, calibDev);
-            reStart(dev, calibDev);
-
             
+            Run(calibDev, dictCount);
+            reStart(calibDev, dictCount);
         }
+        /// <summary>
+        /// Проверяет ввод с клавиатуры, завершает программу
+        /// </summary>
         public static void TestReadKey()
         {
             if (Console.ReadKey().Key != ConsoleKey.Enter)
@@ -38,13 +42,18 @@ namespace Calibration
                 Console.ReadKey();
             }
         }
-
-        static void Run(HashSet<Device> dev, CalibrationInformation[] calibDev)
+        /// <summary>
+        /// Запускает калибровку, передает ранее сгенерированные приборы и количество калибровок каждого типа
+        /// </summary>
+        /// <param name="calibDev"></param>
+        /// <param name="dictCount"></param>
+        static void Run(CalibrationInformation[] calibDev, Dictionary<string, int> dictCount)
         {
             Examples example = new Examples();
             (double M, double E)[] arrayME = example.GeneratePairs();
             InstrumentCalibration calib = new InstrumentCalibration();
-            calib.StartColibration(dev, calibDev, arrayME);
+            
+            calib.StartColibration(calibDev, arrayME, dictCount);
         }
 
 
